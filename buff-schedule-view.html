@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Beyond Love · Buff Schedule</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:ital,wght@0,400;0,600;1,400;1,600&family=Nunito:wght@400;600;700;800&family=Pacifico&display=swap" rel="stylesheet">
+<style>
+  /* ══════════════════════
+     VARIABLES
+  ══════════════════════ */
+  :root {
+    --bg: #2e2540;
+    --surface: #3a2f52;
+    --surface2: #463960;
+    --border: #6a5888;
+    --accent: #deb0e8;
+    --accent2: #f4c4d4;
+    --green: #aadec4;
+    --text: #fdf6ff;
+    --muted: #c4b4d8;
+    --heart: #f4c4d4;
+    --logo: #F1B272;
+    --hour-h: 22px;
+    --cal-full-h: 528px;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; scrollbar-width:thin; scrollbar-color:var(--border) transparent; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Nunito', sans-serif;
+    min-height: 100vh;
+    background-image:
+      radial-gradient(ellipse at 20% 20%, rgba(192,132,200,.08) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 80%, rgba(232,160,176,.06) 0%, transparent 50%);
+  }
+
+  /* ── Header ── */
+  header {
+    padding: 20px 24px 0;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .logo { font-family: 'Pacifico'; font-size: 26px; color: var(--logo); white-space: nowrap; }
+  .tagline { font-size: 11px; color: var(--muted); letter-spacing:.08em; text-transform:uppercase; margin-top:2px; }
+
+  .hdr-div {
+    --s:2px;--b:2px;--m:0.4;
+    flex:1;
+    --R:calc(var(--s)*sqrt(var(--m)*var(--m)+1)+var(--b)/2);
+    height:calc(2*var(--R));
+    --_g:#0000 calc(99% - var(--b)),#000 calc(101% - var(--b)) 99%,#0000 101%;
+    mask:
+      radial-gradient(var(--R) at left 50% bottom calc(-1*var(--m)*var(--s)),var(--_g)) calc(50% - 2*var(--s)) calc(50% - var(--s)/2 - var(--b)/2)/calc(4*var(--s)) calc(var(--s)+var(--b)) repeat-x,
+      radial-gradient(var(--R) at left 50% top calc(-1*var(--m)*var(--s)),var(--_g)) 50% calc(50% + var(--s)/2 + var(--b)/2)/calc(4*var(--s)) calc(var(--s)+var(--b)) repeat-x;
+    background: linear-gradient(to right, var(--border), transparent);
+    margin-left: 16px;
+  }
+
+  .week-badge { display:flex; align-items:center; white-space:nowrap; }
+  .badge-time {
+    background:var(--surface2); border:1px solid var(--border);
+    border-radius:20px 0 0 20px; padding:5px 12px;
+    font-size:12px; color:var(--text);
+    display:flex; align-items:center; gap:6px; border-right:none;
+  }
+  .badge-time strong { font-weight:800; }
+  .badge-tz { color:var(--accent); font-weight:700; font-size:11px; }
+  .badge-date {
+    background:var(--surface); border:1px solid var(--border);
+    border-radius:0 20px 20px 0; padding:5px 12px;
+    font-size:12px; color:var(--muted);
+  }
+  .dot { width:6px; height:6px; border-radius:50%; background:var(--green); animation:pulse 2s ease-in-out infinite; }
+  @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(.8)} }
+
+  /* ── Main ── */
+  main {
+    margin: 20px 24px 24px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .section-title {
+    font-family:'Crimson Pro',serif; font-size:20px; color:var(--accent2);
+    display:flex; align-items:center; gap:10px;
+  }
+  .section-title::before { content:'✦'; color:var(--accent); font-size:13px; }
+
+  /* ── TZ Buttons ── */
+  .cal-section-header {
+    display:flex; align-items:center; justify-content:space-between;
+    margin-bottom:16px; flex-wrap:wrap; gap:10px;
+  }
+  .cal-controls { display:flex; gap:6px; align-items:center; flex-wrap:wrap; }
+  .tz-btn {
+    background:transparent; border:1px solid var(--border); color:var(--muted);
+    padding:5px 12px; border-radius:20px; font-family:'Nunito',sans-serif;
+    font-size:12px; cursor:pointer; transition:all .2s;
+  }
+  .tz-btn:hover { border-color:var(--accent); color:var(--accent); }
+  .tz-btn.active-tz { border-color:var(--accent2); color:var(--accent2); background:rgba(244,196,212,.12); }
+
+  /* ── Calendar ── */
+  .cal-frame { border:1px solid var(--border); border-radius:14px; overflow:hidden; display:flex; flex-direction:column; }
+  .cal-head {
+    display:grid; grid-template-columns:52px repeat(7,1fr);
+    background:var(--surface2); border-bottom:2px solid var(--border); flex-shrink:0;
+  }
+  .cal-head-cell {
+    padding:5px 6px 4px; text-align:center; font-size:10px; font-weight:700;
+    text-transform:uppercase; letter-spacing:.08em; color:var(--muted);
+    border-right:1px solid var(--border);
+  }
+  .cal-head-cell:last-child { border-right:none; }
+  .cal-head-cell.today { color:var(--accent2); }
+  .day-num { display:block; font-size:14px; font-weight:800; color:var(--text); margin-top:1px; }
+  .today-num {
+    display:flex; align-items:center; justify-content:center;
+    width:22px; height:22px; border-radius:50%;
+    background:var(--accent2); color:var(--bg);
+    font-size:12px; font-weight:800; margin:1px auto 0;
+  }
+
+  .cal-body-scroll { overflow-y:auto; max-height:var(--cal-full-h); flex-shrink:0; }
+  .cal-body-scroll::-webkit-scrollbar { width:4px; }
+  .cal-body-scroll::-webkit-scrollbar-thumb { background:var(--border); border-radius:2px; }
+
+  .cal-body {
+    display:grid; grid-template-columns:52px repeat(7,1fr);
+    position:relative; background:rgba(0,0,0,.25);
+  }
+
+  .hr-lbl {
+    height:var(--hour-h); display:flex; align-items:flex-start;
+    justify-content:flex-end; padding:2px 5px 0 0;
+    font-size:9px; color:var(--muted);
+    border-bottom:1px solid rgba(106,88,136,.35); background:var(--surface2);
+  }
+
+  .day-col { grid-row:1; position:relative; border-right:2px solid var(--border); border-left:2px solid var(--border); background:transparent; }
+  .day-col:last-child { border-right:none; }
+  .day-col.today { background:rgba(244,196,212,.07); }
+
+  .tick { position:absolute; left:0; right:0; height:1px; background:rgba(106,88,136,.35); }
+  .lane-div { position:absolute; top:0; bottom:0; left:50%; width:1px; background:rgba(106,88,136,.5); z-index:1; }
+
+  #now-line {
+    position:absolute; left:52px; right:0; height:2px;
+    background:var(--accent2); box-shadow:0 0 8px rgba(244,196,212,.7);
+    z-index:15; pointer-events:none;
+  }
+  #now-line::before {
+    content:''; position:absolute; left:-4px; top:-3px;
+    width:8px; height:8px; border-radius:50%; background:var(--accent2);
+  }
+
+  /* ── Buff blocks ── */
+  .buff-block {
+    position:absolute; border-radius:4px; padding:2px 4px;
+    font-size:9px; font-weight:700; cursor:default; z-index:5;
+    border:1px solid rgba(255,255,255,.1); transition:filter .15s;
+  }
+  .buff-block:hover { filter:brightness(1.3); z-index:8; }
+  .buff-block .bname { display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; line-height:1.3; }
+  .buff-block .btime { display:block; font-size:8px; opacity:.6; margin-top:1px; }
+  .buff-block.continued::before { content:'↑'; position:absolute; top:1px; right:3px; font-size:8px; opacity:.5; }
+  .buff-block.overflows::after  { content:'↓'; position:absolute; bottom:1px; right:3px; font-size:8px; opacity:.5; }
+
+  /* ── Markers ── */
+  .event-marker {
+    position:absolute; left:0; right:0; height:6px;
+    z-index:9; cursor:default; border-radius:2px; transition:height .1s;
+  }
+  .event-marker:hover { height:7px; }
+  .event-marker .marker-tooltip {
+    display:none; position:absolute; left:50%; bottom:10px;
+    transform:translateX(-50%); background:var(--bg);
+    border:1px solid var(--border); border-radius:8px;
+    padding:5px 10px; font-size:11px; font-weight:600; color:var(--text);
+    white-space:nowrap; z-index:50; box-shadow:0 4px 16px rgba(0,0,0,.5); pointer-events:none;
+  }
+  .event-marker:hover .marker-tooltip { display:block; }
+
+  /* ── Buff tooltip ── */
+  .buff-tooltip-float {
+    position:fixed; background:var(--bg); border:1px solid var(--border);
+    border-radius:8px; padding:6px 10px; font-size:11px; color:var(--text);
+    white-space:nowrap; z-index:100; pointer-events:none; display:none;
+    box-shadow:0 4px 16px rgba(0,0,0,.5); line-height:1.6;
+  }
+
+  /* ── Footer ── */
+  .notes { font-size: 0.6rem; color:var(--accent); letter-spacing:.08em; text-transform:uppercase; margin-left: 10px; margin-top:5px; }
+  footer { text-align:center; padding:0 0 24px; font-family:'Crimson Pro',serif; font-style:italic; font-size:14px; color:var(--muted); }
+  footer span { color:var(--heart); }
+
+  /* ══════════════════════
+     MOBILE
+  ══════════════════════ */
+  .mobile-day-nav { display:none; align-items:center; gap:12px; padding:10px 12px; }
+  .mobile-cal-body { display:none; }
+  .mobile-nav-btn {
+    background:var(--surface2); border:1px solid var(--border);
+    border-radius:20px; padding:4px 14px; font-size:16px;
+    color:var(--muted); cursor:pointer; font-family:'Nunito',sans-serif;
+    transition:all .2s;
+  }
+  .mobile-nav-btn:hover { border-color:var(--accent); color:var(--accent); }
+  .day-nav-info { flex:1; text-align:center; }
+  .day-nav-name { font-size:14px; font-weight:800; color:var(--text); display:block; }
+  .day-nav-name.today { color:var(--accent2); }
+  .day-nav-date { font-size:12px; color:var(--muted); display:block; }
+  .day-nav-date.today { color:var(--accent2); }
+  .day-dots { display:flex; gap:5px; justify-content:center; margin-top:6px; }
+  .day-dot { width:6px; height:6px; border-radius:50%; background:var(--border); transition:all .2s; }
+  .day-dot.active { background:var(--accent2); }
+  .day-dot.is-today { box-shadow:0 0 0 1.5px var(--accent2); background:transparent; }
+  .day-dot.active.is-today { background:var(--accent2); box-shadow:none; }
+
+  .mobile-body-wrap { display:flex; position:relative; }
+  .mobile-hr-col { width:48px; flex-shrink:0; background:var(--surface2); border-right:1px solid var(--border); }
+  .mobile-hr-lbl {
+    height:var(--hour-h); display:flex; align-items:flex-start;
+    justify-content:flex-end; padding:2px 5px 0 0;
+    font-size:9px; color:var(--muted); border-bottom:1px solid rgba(106,88,136,.35);
+  }
+  .mobile-lanes { flex:1; display:grid; grid-template-columns:1fr 1fr; position:relative; }
+  .mobile-lane { position:relative; border-right:1px solid var(--border); }
+  .mobile-lane:last-child { border-right:none; }
+  .mobile-tick { position:absolute; left:0; right:0; height:1px; background:rgba(106,88,136,.35); }
+  .mobile-buff-block {
+    position:absolute; left:2px; right:2px; border-radius:6px;
+    padding:2px 4px; font-size:9px; font-weight:700;
+    border:1px solid rgba(255,255,255,.1); overflow:hidden;
+  }
+  .mobile-buff-block .mbname { display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .mobile-buff-block .mbtime { display:block; font-size:8px; opacity:.6; }
+  .mobile-buff-block.continued::before { content:'↑'; position:absolute; top:1px; right:3px; font-size:8px; opacity:.5; }
+  .mobile-event-marker {
+    position:absolute; left:0; right:0; height:6px;
+    z-index:9; border-radius:2px;
+  }
+  #mobile-now-line {
+    position:absolute; left:0; right:0; height:2px;
+    background:var(--accent2); box-shadow:0 0 8px rgba(244,196,212,.7);
+    z-index:15; pointer-events:none;
+  }
+
+  /* ── Mobile Legend ── */
+  .mobile-legend { display:none; margin-top:16px; }
+  .legend-section-title {
+    font-size:10px; font-weight:700; text-transform:uppercase;
+    letter-spacing:.08em; color:var(--muted); margin-bottom:8px;
+    display:flex; align-items:center; gap:6px;
+  }
+  .legend-section-title::before { content:'✦'; color:var(--accent); font-size:9px; }
+  .legend-list { display:flex; flex-direction:column; gap:6px; margin-bottom:16px; }
+  .legend-item {
+    display:flex; align-items:center; gap:10px;
+    background:var(--surface2); border:1px solid var(--border);
+    border-radius:8px; padding:7px 10px; font-size:12px;
+  }
+  .legend-swatch { width:10px; height:28px; border-radius:3px; flex-shrink:0; }
+  .legend-marker-swatch { width:10px; height:6px; border-radius:2px; flex-shrink:0; }
+  .legend-info { display:flex; flex-direction:column; gap:2px; }
+  .legend-name { font-weight:700; font-size:12px; color:var(--text); }
+  .legend-desc { font-size:10px; color:var(--muted); }
+  .legend-time { font-size:10px; color:var(--accent); font-weight:700; }
+
+  .legend-buffs-details { margin-top:4px; }
+  .legend-summary {
+    cursor: pointer;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+    color: var(--muted);
+    transition: border-color .2s, color .2s;
+  }
+  .legend-summary::-webkit-details-marker { display: none; }
+  .legend-summary:hover { border-color: var(--accent); color: var(--accent); }
+  .legend-summary::after {
+    content: '›';
+    font-size: 16px;
+    color: var(--accent);
+    transition: transform .2s;
+  }
+  .legend-buffs-details[open] .legend-summary {
+    border-color: var(--accent);
+    color: var(--accent);
+    border-radius: 8px 8px 0 0;
+    border-bottom-color: transparent;
+  }
+  .legend-buffs-details[open] .legend-summary::after {
+    transform: rotate(90deg);
+  }
+  .legend-buffs-details[open] .legend-list {
+    border: 1px solid var(--accent);
+    border-top: none;
+    border-radius: 0 0 8px 8px;
+    padding: 8px;
+    background: var(--surface2);
+  }
+
+  @media (max-width:700px) {
+    .mobile-legend { display:block; }
+    header { padding:16px 16px 0; }
+    .hdr-div { display:none; }
+    .week-badge { margin-left:auto; }
+    .logo { font-size:20px; }
+    .tagline { font-size:10px; }
+    main { margin:20px 16px 24px; padding:16px; gap:20px; }
+    .cal-head { display:none; }
+    .cal-body { display:none; }
+    .cal-body-scroll { display:none; }
+    .mobile-day-nav { display:flex; }
+    .mobile-cal-body { display:block; }
+    .cal-controls { gap:4px; }
+    .tz-btn { padding:4px 9px; font-size:11px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="logo">Beyond Love</div>
+  </div>
+  <div class="hdr-div"></div>
+  <div class="week-badge">
+    <div class="badge-time">
+      <div class="dot"></div>
+      <strong><span id="live-time">--:--</span></strong>
+      <span class="badge-tz" id="live-tz"></span>
+    </div>
+    <div class="badge-date" id="live-date"></div>
+  </div>
+</header>
+
+<main>
+  <div>
+    <div class="cal-section-header">
+      <div class="section-title">Weekly Buff Schedule</div>
+      <div class="cal-controls" id="tz-buttons"></div>
+    </div>
+
+    <div class="cal-frame">
+      <div class="cal-head" id="cal-head"></div>
+      <div class="cal-body-scroll" id="cal-scroll">
+        <div class="cal-body" id="cal-body"></div>
+      </div>
+
+      <!-- Mobile -->
+      <div class="mobile-day-nav" id="mobile-day-nav">
+        <button class="mobile-nav-btn" onclick="mobileNav(-1)">‹</button>
+        <div class="day-nav-info">
+          <span class="day-nav-name" id="mobile-day-name"></span>
+          <span class="day-nav-date" id="mobile-day-date"></span>
+          <div class="day-dots" id="day-dots"></div>
+        </div>
+        <button class="mobile-nav-btn" onclick="mobileNav(1)">›</button>
+      </div>
+      <div class="mobile-cal-body" id="mobile-cal-body">
+        <div class="mobile-body-wrap">
+          <div class="mobile-hr-col" id="mobile-hr-col"></div>
+          <div class="mobile-lanes" id="mobile-lanes">
+            <div class="mobile-lane" id="mobile-lane-1"></div>
+            <div class="mobile-lane" id="mobile-lane-2"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="notes">* This is a baseline; timings may deviate depending on IRL conditions.</div>
+    <div class="notes">* As scheduled, <strong>Rank III</strong> buff is used if 5+ members are online; otherwise, <strong>Rank II</strong> buff is used.</div>
+    <div class="mobile-legend" id="mobile-legend"></div>
+  </div>
+</main>
+
+<footer>Welcome home <span>♥</span></footer>
+
+<div class="buff-tooltip-float" id="buff-tooltip"></div>
+
+<script>
+// ══════════════════════════════════════════════════════
+// CALENDAR DATA
+// Replace the contents of calendarData with your exported schedule.json
+// ══════════════════════════════════════════════════════
+const calendarData = {
+  "schedule": [
+    {
+      "day": 0,
+      "lane": 1,
+      "startHour": 2,
+      "buff": "Heat of Battle II"
+    },
+    {
+      "day": 1,
+      "lane": 2,
+      "startHour": 2,
+      "buff": "Reduced Rates II"
+    },
+    {
+      "day": 1,
+      "lane": 1,
+      "startHour": 2,
+      "buff": "Heat of Battle II"
+    },
+    {
+      "day": 6,
+      "lane": 1,
+      "startHour": 2,
+      "buff": "Heat of Battle III"
+    },
+    {
+      "day": 6,
+      "lane": 2,
+      "startHour": 2,
+      "buff": "Reduced Rates II"
+    },
+    {
+      "day": 2,
+      "lane": 1,
+      "startHour": 2,
+      "buff": "Heat of Battle II"
+    },
+    {
+      "day": 3,
+      "lane": 1,
+      "startHour": 2,
+      "buff": "Heat of Battle II"
+    },
+    {
+      "day": 4,
+      "lane": 1,
+      "startHour": 2,
+      "buff": "Heat of Battle II"
+    },
+    {
+      "day": 5,
+      "lane": 1,
+      "startHour": 2,
+      "buff": "Heat of Battle II"
+    },
+    {
+      "day": 2,
+      "lane": 2,
+      "startHour": 2,
+      "buff": "Meat and Mead II"
+    },
+    {
+      "day": 3,
+      "lane": 2,
+      "startHour": 2,
+      "buff": "Reduced Rates II"
+    },
+    {
+      "day": 4,
+      "lane": 2,
+      "startHour": 2,
+      "buff": "Helping Hand II"
+    },
+    {
+      "day": 5,
+      "lane": 2,
+      "startHour": 2,
+      "buff": "Earth and Water II"
+    },
+    {
+      "day": 0,
+      "lane": 2,
+      "startHour": 2,
+      "buff": "Jackpot II"
+    }
+  ],
+  "markers": [
+    {
+      "days": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "hour": 15,
+      "label": "Daily Reset",
+      "colour": "#aadec4"
+    },
+    {
+      "days": [
+        2
+      ],
+      "hour": 8,
+      "label": "Weekly Reset",
+      "colour": "#fce4b4"
+    },
+    {
+      "days": [
+        2
+      ],
+      "hour": 8,
+      "label": "Fashion Reset",
+      "colour": "#8e0689"
+    },
+    {
+      "days": [
+        5
+      ],
+      "hour": 8,
+      "label": "Fashion Report Turn-in",
+      "colour": "#f556e8"
+    }
+  ],
+  "buffTypes": [
+    {
+      "name": "Heat of Battle III",
+      "colour": "#b880d8",
+      "category": "EXP",
+      "description": "Increases EXP earned through battle by 15%"
+    },
+    {
+      "name": "Heat of Battle II",
+      "colour": "#8870c0",
+      "category": "EXP",
+      "description": "Increases EXP earned through battle by 10%"
+    },
+    {
+      "name": "Earth and Water II",
+      "colour": "#60a888",
+      "category": "EXP",
+      "description": "Increases EXP earned through gathering by 10%"
+    },
+    {
+      "name": "Helping Hand II",
+      "colour": "#a86888",
+      "category": "EXP",
+      "description": "Increases EXP earned through crafting by 10%"
+    },
+    {
+      "name": "Jackpot II",
+      "colour": "#c0b068",
+      "category": "Economy",
+      "description": "Increases MGP payout by 10%"
+    },
+    {
+      "name": "Meat and Mead II",
+      "colour": "#a87868",
+      "category": "Stats",
+      "description": "Increases the duration of food effects by 10 minutes"
+    },
+    {
+      "name": "Reduced Rates II",
+      "colour": "#6888a8",
+      "category": "Economy",
+      "description": "Reduces teleportation fees by 30%"
+    }
+  ]
+};
+
+// ── Timezone ──
+const TZ_CONFIG = [
+  { key:'GMT', zone:'Europe/London',       labels:['GMT','BST'] },
+  { key:'ET',  zone:'America/New_York',    labels:['EST','EDT'] },
+  { key:'CT',  zone:'America/Chicago',     labels:['CST','CDT'] },
+  { key:'MT',  zone:'America/Denver',      labels:['MST','MDT'] },
+  { key:'PT',  zone:'America/Los_Angeles', labels:['PST','PDT'] },
+  { key:'SGT', zone:'Asia/Singapore',      labels:['SGT','SGT'] },
+  { key:'JST', zone:'Asia/Tokyo',          labels:['JST','JST'] },
+];
+const TZ_STD_OFFSETS = {
+  'Europe/London':0,'America/New_York':-5,'America/Chicago':-6,
+  'America/Denver':-7,'America/Los_Angeles':-8,'Asia/Singapore':8,'Asia/Tokyo':9
+};
+const DAYS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const FULL_DAYS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const HOUR_HEIGHT = 22;
+const DAY_HEIGHT = 24 * HOUR_HEIGHT;
+
+let activeTZ = 'GMT';
+let mobileDay = 0;
+
+function getUTCOffset(zone) {
+  const now = new Date();
+  const u = new Date(now.toLocaleString('en-US',{timeZone:'UTC'}));
+  const t = new Date(now.toLocaleString('en-US',{timeZone:zone}));
+  return (t-u)/3600000;
+}
+function getTZLabel(cfg) {
+  return Math.round(getUTCOffset(cfg.zone)) !== TZ_STD_OFFSETS[cfg.zone] ? cfg.labels[1] : cfg.labels[0];
+}
+function getNowInTZ(zone) {
+  const parts = new Intl.DateTimeFormat('en-US',{timeZone:zone,hour:'numeric',minute:'numeric',hour12:false}).formatToParts(new Date());
+  return { h:parseInt(parts.find(p=>p.type==='hour').value)%24, m:parseInt(parts.find(p=>p.type==='minute').value) };
+}
+function getTodayIndex(zone) {
+  const parts = new Intl.DateTimeFormat('en-US',{timeZone:zone,weekday:'short'}).formatToParts(new Date());
+  return DAYS.indexOf(parts.find(p=>p.type==='weekday').value);
+}
+function getDateInTZ(zone) {
+  const parts = new Intl.DateTimeFormat('en-US',{timeZone:zone,day:'numeric',month:'numeric',year:'numeric'}).formatToParts(new Date());
+  const d=parseInt(parts.find(p=>p.type==='day').value);
+  const m=parseInt(parts.find(p=>p.type==='month').value)-1;
+  const y=parseInt(parts.find(p=>p.type==='year').value);
+  return d+' '+MONTHS[m]+' '+y;
+}
+function applyOffset(day, hour) {
+  const offset = Math.round(getUTCOffset(TZ_CONFIG.find(t=>t.key===activeTZ).zone));
+  let h=hour+offset, d=day;
+  if(h<0){h+=24;d=(d+6)%7;}
+  if(h>=24){h-=24;d=(d+1)%7;}
+  return {day:d,hour:h};
+}
+function fmtH(h) { return String(h).padStart(2,'0')+':00'; }
+function getWeekDates() {
+  const today=new Date(), wd=today.getDay(), sun=new Date(today);
+  sun.setDate(today.getDate()-wd);
+  return Array.from({length:7},(_,i)=>{ const d=new Date(sun); d.setDate(sun.getDate()+i); return d.getDate(); });
+}
+function getColour(buffName) {
+  const bt = calendarData.buffTypes.find(b=>b.name===buffName);
+  return bt ? bt.colour : '#8870c0';
+}
+function getDescription(buffName) {
+  const bt = calendarData.buffTypes.find(b=>b.name===buffName);
+  return bt ? bt.description : '';
+}
+
+// ── Tooltip ──
+const buffTooltipEl = document.getElementById('buff-tooltip');
+function showBuffTooltip(x,y,name,description,day,hour) {
+  const shifted = applyOffset(day,hour);
+  const cfg = TZ_CONFIG.find(t=>t.key===activeTZ);
+  const label = getTZLabel(cfg);
+  buffTooltipEl.innerHTML = '<strong>'+name+'</strong><br>'+description+'<br>Starts '+DAYS[shifted.day]+' at '+fmtH(shifted.hour)+' '+label;
+  buffTooltipEl.style.left=(x+16)+'px';
+  buffTooltipEl.style.top=(y+16)+'px';
+  buffTooltipEl.style.display='block';
+}
+function hideBuffTooltip() { buffTooltipEl.style.display='none'; }
+
+// ── Clock ──
+function updateClock() {
+  const cfg = TZ_CONFIG.find(t=>t.key===activeTZ);
+  const {h,m} = getNowInTZ(cfg.zone);
+  document.getElementById('live-time').textContent = String(h).padStart(2,'0')+':'+String(m).padStart(2,'0');
+  document.getElementById('live-tz').textContent = getTZLabel(cfg);
+  document.getElementById('live-date').textContent = getDateInTZ(cfg.zone);
+}
+
+// ── TZ Buttons ──
+function buildTZButtons() {
+  const wrap = document.getElementById('tz-buttons');
+  wrap.innerHTML = '';
+  TZ_CONFIG.forEach(cfg => {
+    const btn = document.createElement('button');
+    btn.className = 'tz-btn'+(cfg.key===activeTZ?' active-tz':'');
+    btn.textContent = getTZLabel(cfg);
+    btn.onclick = () => { activeTZ=cfg.key; buildTZButtons(); updateClock(); rebuildCalendar(); mobileDay=getTodayIndex(TZ_CONFIG.find(t=>t.key===activeTZ).zone); buildMobileDay(mobileDay); };
+    wrap.appendChild(btn);
+  });
+}
+
+// ── Calendar ──
+function addBuffBlock(col, entry, startH, durationH, leftPct, isContinued, overflows) {
+  const colour = getColour(entry.buff);
+  const el = document.createElement('div');
+  el.className = 'buff-block'+(isContinued?' continued':'')+(overflows?' overflows':'');
+  el.style.cssText = 'position:absolute;top:'+(startH*HOUR_HEIGHT)+'px;height:'+(durationH*HOUR_HEIGHT-1)+'px;left:'+leftPct+'%;width:48%;background:linear-gradient(180deg,'+colour+','+colour+'cc);';
+  el.innerHTML = '<span class="bname">'+entry.buff+'</span><span class="btime">'+fmtH(startH)+'</span>';
+  el.addEventListener('mouseenter', e => showBuffTooltip(e.clientX, e.clientY, entry.buff, getDescription(entry.buff), entry.day, entry.startHour));
+  el.addEventListener('mousemove',  e => { buffTooltipEl.style.left=(e.clientX+16)+'px'; buffTooltipEl.style.top=(e.clientY+16)+'px'; });
+  el.addEventListener('mouseleave', hideBuffTooltip);
+  col.appendChild(el);
+}
+
+function addMarker(col, shiftedHour, label, colour, stackIdx) {
+  const el = document.createElement('div');
+  el.className = 'event-marker';
+  el.style.top = (shiftedHour*HOUR_HEIGHT + stackIdx*9)+'px';
+  el.style.background = colour;
+  el.style.boxShadow = '0 0 5px '+colour;
+  const cfg = TZ_CONFIG.find(t=>t.key===activeTZ);
+  const tzLabel = getTZLabel(cfg);
+  el.innerHTML = '<span class="marker-tooltip">'+label+' · '+fmtH(shiftedHour)+' '+tzLabel+'</span>';
+  col.appendChild(el);
+}
+
+function rebuildCalendar() {
+  const todayIdx = getTodayIndex(TZ_CONFIG.find(t=>t.key===activeTZ).zone);
+  const dates = getWeekDates();
+  const {h:NOW_H, m:NOW_MIN} = getNowInTZ(TZ_CONFIG.find(t=>t.key===activeTZ).zone);
+
+  // Headers
+  const head = document.getElementById('cal-head');
+  head.innerHTML = '<div style="border-right:1px solid var(--border)"></div>';
+  DAYS.forEach((d,i) => {
+    const el = document.createElement('div');
+    el.className = 'cal-head-cell'+(i===todayIdx?' today':'');
+    el.innerHTML = d+'<span class="'+(i===todayIdx?'today-num':'day-num')+'">'+dates[i]+'</span>';
+    head.appendChild(el);
+  });
+
+  // Body
+  const calBody = document.getElementById('cal-body');
+  calBody.innerHTML = '';
+  const hrCol = document.createElement('div');
+  hrCol.style.cssText = 'grid-column:1;grid-row:1;background:var(--surface2);border-right:1px solid var(--border);z-index:2;';
+  for(let h=0;h<24;h++){
+    const lbl=document.createElement('div'); lbl.className='hr-lbl'; lbl.textContent=fmtH(h); hrCol.appendChild(lbl);
+  }
+  calBody.appendChild(hrCol);
+
+  for(let d=0;d<7;d++){
+    const col=document.createElement('div');
+    col.className='day-col'+(d===todayIdx?' today':'');
+    col.style.cssText='grid-column:'+(d+2)+';grid-row:1;height:'+DAY_HEIGHT+'px;';
+    for(let h=0;h<24;h++){ const t=document.createElement('div'); t.className='tick'; t.style.top=(h*HOUR_HEIGHT)+'px'; col.appendChild(t); }
+    col.appendChild(Object.assign(document.createElement('div'),{className:'lane-div'}));
+
+    calendarData.schedule.forEach(entry => {
+      const sh = applyOffset(entry.day, entry.startHour);
+      const lp = entry.lane===1?1:51;
+      if(sh.day===d) {
+        const hum=24-sh.hour;
+        hum>=24 ? addBuffBlock(col,entry,sh.hour,24,lp,false,false) : addBuffBlock(col,entry,sh.hour,hum,lp,false,true);
+      }
+      const nd=(applyOffset(entry.day,entry.startHour).day+1)%7;
+      if(nd===d){
+        const hum=24-applyOffset(entry.day,entry.startHour).hour;
+        if(hum<24) addBuffBlock(col,entry,0,24-hum,lp,true,false);
+      }
+    });
+
+    const markersByHour={};
+    calendarData.markers.forEach(m => {
+      if(!m.days.includes(d)) return;
+      const sh=applyOffset(d,m.hour);
+      const key=sh.day+'-'+sh.hour;
+      if(!markersByHour[key]) markersByHour[key]=[];
+      markersByHour[key].push({label:m.label,colour:m.colour,hour:sh.hour});
+    });
+    Object.values(markersByHour).forEach(group => {
+      group.forEach((m,si) => addMarker(col,m.hour,m.label,m.colour,si));
+    });
+
+    calBody.appendChild(col);
+  }
+
+  const nl=document.createElement('div'); nl.id='now-line';
+  nl.style.top=(NOW_H*HOUR_HEIGHT+(NOW_MIN/60)*HOUR_HEIGHT)+'px';
+  calBody.appendChild(nl);
+}
+
+// ── Mobile ──
+function buildDayDots() {
+  const todayIdx = getTodayIndex(TZ_CONFIG.find(t=>t.key===activeTZ).zone);
+  const wrap = document.getElementById('day-dots');
+  wrap.innerHTML='';
+  DAYS.forEach((_,i)=>{
+    const d=document.createElement('div');
+    d.className='day-dot'+(i===mobileDay?' active':'')+(i===todayIdx?' is-today':'');
+    wrap.appendChild(d);
+  });
+}
+
+function buildMobileDay(dayIdx) {
+  const cfg = TZ_CONFIG.find(t=>t.key===activeTZ);
+  const todayIdx = getTodayIndex(cfg.zone);
+  const {h:NOW_H,m:NOW_MIN} = getNowInTZ(cfg.zone);
+  const dates = getWeekDates();
+
+  const nameEl=document.getElementById('mobile-day-name');
+  const dateEl=document.getElementById('mobile-day-date');
+  nameEl.textContent=FULL_DAYS[dayIdx];
+  nameEl.className='day-nav-name'+(dayIdx===todayIdx?' today':'');
+  dateEl.textContent=dates[dayIdx]+' '+MONTHS[new Date().getMonth()];
+  dateEl.className='day-nav-date'+(dayIdx===todayIdx?' today':'');
+  buildDayDots();
+
+  const hrCol=document.getElementById('mobile-hr-col');
+  hrCol.innerHTML='';
+  for(let h=0;h<24;h++){
+    const lbl=document.createElement('div'); lbl.className='mobile-hr-lbl'; lbl.textContent=fmtH(h); hrCol.appendChild(lbl);
+  }
+
+  const lane1=document.getElementById('mobile-lane-1');
+  const lane2=document.getElementById('mobile-lane-2');
+  lane1.innerHTML=''; lane2.innerHTML='';
+  lane1.style.height=DAY_HEIGHT+'px';
+  lane2.style.height=DAY_HEIGHT+'px';
+
+  for(let h=0;h<24;h++){
+    [lane1,lane2].forEach(ln=>{ const t=document.createElement('div'); t.className='mobile-tick'; t.style.top=(h*HOUR_HEIGHT)+'px'; ln.appendChild(t); });
+  }
+
+  calendarData.schedule.forEach(entry => {
+    const sh=applyOffset(entry.day,entry.startHour);
+    const colour=getColour(entry.buff);
+    const tl=entry.lane===1?lane1:lane2;
+    if(sh.day===dayIdx){
+      const hum=24-sh.hour;
+      addMobileBlock(tl,entry,sh.hour,hum>=24?24:hum,false,colour);
+    }
+    const nd=(applyOffset(entry.day,entry.startHour).day+1)%7;
+    if(nd===dayIdx){
+      const hum=24-applyOffset(entry.day,entry.startHour).hour;
+      if(hum<24) addMobileBlock(tl,entry,0,24-hum,true,colour);
+    }
+  });
+
+  const existingNl=document.getElementById('mobile-now-line');
+  if(existingNl) existingNl.remove();
+  if(dayIdx===todayIdx){
+    const nl=document.createElement('div'); nl.id='mobile-now-line';
+    nl.style.top=(NOW_H*HOUR_HEIGHT+(NOW_MIN/60)*HOUR_HEIGHT)+'px';
+    document.getElementById('mobile-lanes').appendChild(nl);
+  }
+
+  document.querySelectorAll('.mobile-event-marker').forEach(e=>e.remove());
+  const markersByHour={};
+  calendarData.markers.forEach(m=>{
+    if(!m.days.includes(dayIdx)) return;
+    const sh=applyOffset(dayIdx,m.hour);
+    if(!markersByHour[sh.hour]) markersByHour[sh.hour]=[];
+    markersByHour[sh.hour].push({label:m.label,colour:m.colour,hour:sh.hour});
+  });
+  Object.values(markersByHour).forEach(group=>{
+    group.forEach((m,si)=>{
+      const el=document.createElement('div');
+      el.className='mobile-event-marker';
+      el.style.top=(m.hour*HOUR_HEIGHT+si*9)+'px';
+      el.style.background=m.colour;
+      el.style.boxShadow='0 0 5px '+m.colour;
+      document.getElementById('mobile-lanes').appendChild(el);
+    });
+  });
+
+  buildMobileLegend();
+}
+
+function addMobileBlock(laneEl, entry, startH, durationH, isContinued, colour) {
+  const el=document.createElement('div');
+  el.className='mobile-buff-block'+(isContinued?' continued':'');
+  el.style.cssText='top:'+(startH*HOUR_HEIGHT)+'px;height:'+(durationH*HOUR_HEIGHT-1)+'px;background:linear-gradient(180deg,'+colour+','+colour+'cc);';
+  el.innerHTML='<span class="mbname">'+entry.buff+'</span><span class="mbtime">'+fmtH(startH)+'</span>';
+  laneEl.appendChild(el);
+}
+
+function buildMobileLegend() {
+  const container = document.getElementById('mobile-legend');
+  container.innerHTML = '';
+  const cfg = TZ_CONFIG.find(t=>t.key===activeTZ);
+  const tzLabel = getTZLabel(cfg);
+
+  // -- Markers first --
+  if (calendarData.markers.length > 0) {
+    const markerTitle = document.createElement('div');
+    markerTitle.className = 'legend-section-title';
+    markerTitle.textContent = 'Markers Legend';
+    container.appendChild(markerTitle);
+
+    const markerList = document.createElement('div');
+    markerList.className = 'legend-list';
+    calendarData.markers.forEach(m => {
+      const shifted = applyOffset(0, m.hour);
+      const dayNames = m.days.length === 7 ? 'Every day' : m.days.map(d=>DAYS[d]).join(', ');
+      const item = document.createElement('div');
+      item.className = 'legend-item';
+      item.innerHTML =
+        '<div class="legend-marker-swatch" style="background:'+m.colour+';box-shadow:0 0 4px '+m.colour+'"></div>' +
+        '<div class="legend-info">' +
+          '<span class="legend-name">'+m.label+'</span>' +
+          '<span class="legend-desc">'+dayNames+'</span>' +
+          '<span class="legend-time">'+fmtH(shifted.hour)+' '+tzLabel+'</span>' +
+        '</div>';
+      markerList.appendChild(item);
+    });
+    container.appendChild(markerList);
+  }
+
+  // -- Buffs as closed dropdown --
+  const details = document.createElement('details');
+  details.className = 'legend-buffs-details';
+
+  const summary = document.createElement('summary');
+  summary.className = 'legend-summary';
+  summary.textContent = 'Buffs Description';
+  details.appendChild(summary);
+
+  const buffNames = [...new Set(calendarData.schedule.map(e=>e.buff))].sort();
+  const buffList = document.createElement('div');
+  buffList.className = 'legend-list';
+  buffNames.forEach(name => {
+    const colour = getColour(name);
+    const desc = getDescription(name);
+    const item = document.createElement('div');
+    item.className = 'legend-item';
+    item.innerHTML =
+      '<div class="legend-swatch" style="background:linear-gradient(180deg,'+colour+','+colour+'cc)"></div>' +
+      '<div class="legend-info">' +
+        '<span class="legend-name">'+name+'</span>' +
+        '<span class="legend-desc">'+desc+'</span>' +
+      '</div>';
+    buffList.appendChild(item);
+  });
+  details.appendChild(buffList);
+  container.appendChild(details);
+}
+
+function mobileNav(dir) {
+  mobileDay=(mobileDay+dir+7)%7;
+  buildMobileDay(mobileDay);
+}
+
+// ── Init ──
+updateClock();
+setInterval(updateClock,1000);
+buildTZButtons();
+rebuildCalendar();
+mobileDay=getTodayIndex(TZ_CONFIG[0].zone);
+buildMobileDay(mobileDay);
+document.getElementById('live-tz').textContent=getTZLabel(TZ_CONFIG[0]);
+</script>
+</body>
+</html>
